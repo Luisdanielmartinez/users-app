@@ -1,60 +1,72 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
-
-    <v-main>
-      <HelloWorld/>
-    </v-main>
+    <v-overlay :value="overlay">
+      <v-progress-circular
+        color="blue"
+        indeterminate
+        size="64"
+      ></v-progress-circular>
+    </v-overlay>
+    <div>
+      <ToolBar
+        v-show="
+          $route.path === '/' || $route.path === '/register' ? false : true
+        "
+      />
+    </div>
+    <v-container fluid fill-height>
+      <router-view
+        v-on:show-snackbar="showSnackbar"
+        @showOverlay="showOverlay"
+        @hideOverlay="hideOverlay"
+      />
+    </v-container>
+    <v-snackbar v-model="snackbar.visible" :timeout="5000">
+      {{ snackbar.text }}
+      <v-btn @click="snackbar.visible = false" color="teal" text>Cerrar</v-btn>
+    </v-snackbar>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
-
+import ToolBar from "./components/toolbar/toolbar";
+import { getDataLocalStorage } from "./utils/constains";
+import router from "./router/index";
 export default {
-  name: 'App',
+  name: "App",
 
   components: {
-    HelloWorld,
+    ToolBar,
   },
 
   data: () => ({
-    //
+    overlay: false,
+    snackbar: {
+      visible: false,
+      text: "",
+    },
   }),
+  created() {
+    this.validationSession();
+  },
+  methods: {
+    showSnackbar(message) {
+      this.snackbar.visible = true;
+      this.snackbar.text = message;
+    },
+    validationSession() {
+      const isLogin = getDataLocalStorage("token");
+      if (isLogin) {
+        router.replace({ name: "user" }).catch((err) => {});
+        return;
+      }
+    },
+    showOverlay(overlay) {
+      this.overlay = overlay;
+    },
+    hideOverlay(overlay) {
+      this.overlay = overlay;
+    },
+  },
 };
 </script>
